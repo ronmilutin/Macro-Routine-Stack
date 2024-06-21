@@ -1,0 +1,41 @@
+#include <msp430xG46x.h> 
+
+          ORG 1100h
+Id1      DW    1,6,3,8,9,5,8,4     ; Id1's 8 lowest numbers
+Id2      DW    1,9,0,9,5,8,3,2     ; Id2's 8 lowest numbers
+SIZE     DW    9	           ; positive number
+NUM      DW    0
+  
+         RSEG   CSTACK
+         RSEG   CODE                        ; ORG   0x3100 - place program in 'CODE' segment in to Flash memory                    
+
+Main     MOV   #SFE(CSTACK),SP
+         MOV   SIZE,R4
+         MOV   #Id1,R6
+         MOV   #Id2,R7
+         CLR   R5                          
+          
+loop     DEC   R4
+         JZ    finish
+         PUSH  @R6+
+         PUSH  @R7+
+         CALL  #func
+         JMP   loop
+         
+          
+func    MOV 2(SP),R8
+        MOV 4(SP),R9
+        SUB R8,R9
+        ADD R9,R5
+        RET
+          
+finish  MOV R5,NUM
+        NOP
+        JMP    $                        ; infinite loop                        ; infinite loop
+          
+;-------------------------------------------------------------------------------
+          COMMON  INTVEC                  ; Interrupt Vectors
+;-------------------------------------------------------------------------------
+          ORG     RESET_VECTOR            ; POR, ext. Reset
+          DW      Main
+          END         
